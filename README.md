@@ -444,7 +444,7 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 ## 👤 Author
 
 **Gautham KT**  
-MCA Project — Eye & Skin Disease Detection  
+Eye & Skin Disease Detection  
 GitHub: [@gauthamkt](https://github.com/gauthamkt)
 
 ---
