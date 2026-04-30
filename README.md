@@ -120,18 +120,30 @@ Image Input
 - Navigates to Eye Detection, Skin Detection, Color Vision Test, History
 
 ### 👁️ Eye Disease Detection
+<p align="center">
+  <img src="docs/eye_detection.jpg" width="300" />
+</p>
+
 - Capture or upload a **retinal fundus** photograph
 - Passes through 2-stage validation before inference
 - Displays top prediction, confidence score, progress bar, and disease description
 - Saves valid results to history
 
 ### 🩺 Skin Disease Detection
+<p align="center">
+  <img src="docs/skin_detection.jpg" width="300" />
+</p>
+
 - Capture or upload a **skin lesion** photograph
 - Passes through 2-stage validation (domain classifier first)
 - Shows top-5 predictions with confidence percentages
 - Color-coded warnings for invalid/low-quality images
 
 ### 🎨 Color Vision Test
+<p align="center">
+  <img src="docs/color_vision.jpg" width="300" />
+</p>
+
 - Interactive **Ishihara plate test** (10 plates per session)
 - Enter the number you see in each plate
 - Analyzes Protan / Deutan / Tritan deficiency scores
