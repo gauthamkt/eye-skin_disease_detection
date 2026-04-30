@@ -1,0 +1,74 @@
+# Dependencies
+node_modules/
+
+# Android build
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/captures/
+
+# iOS build
+ios/build/
+ios/Pods/
+ios/*.xcworkspace/xcuserdata/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# React Native
+.metro-health-check*
+*.jsbundle
+
+# Generated files
+android/app/src/main/assets/index.android.bundle
+
+# Environment variables
+.env
+.env.local
+.env.*
+
+# Logs
+*.log
+build_log.txt
+build_log_2.txt
+build_log_3.txt
+build_log_4.txt
+crash_log.txt
+metro_log.txt
+
+# Misc
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+.gradle/
+
+# APK files (too large for git)
+*.apk
+*.aab
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.h5
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# safe/running/scratch notes
+safe.txt
+running.txt

@@ -1,0 +1,58 @@
+{
+  "name": "EyeDetect",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "start": "react-native start",
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^1.24.0",
+    "@react-navigation/native": "^6.1.9",
+    "@react-navigation/stack": "^6.3.20",
+    "@tensorflow/tfjs": "^4.22.0",
+    "@tensorflow/tfjs-react-native": "^1.0.0",
+    "base64-arraybuffer": "^1.0.2",
+    "expo-asset": "^12.0.12",
+    "expo-gl": "^13.6.0",
+    "jpeg-js": "^0.4.4",
+    "react": "18.2.0",
+    "react-native": "0.73.2",
+    "react-native-fast-tflite": "^2.0.0",
+    "react-native-fs": "^2.20.0",
+    "react-native-gesture-handler": "2.14.1",
+    "react-native-image-picker": "7.1.0",
+    "react-native-linear-gradient": "^2.8.3",
+    "react-native-pdf": "6.7.3",
+    "react-native-reanimated": "3.6.1",
+    "react-native-safe-area-context": "4.8.2",
+    "react-native-screens": "3.29.0",
+    "react-native-share": "10.0.2",
+    "react-native-sqlite-storage": "6.0.1",
+    "react-native-svg": "14.1.0",
+    "react-native-vision-camera": "3.6.17",
+    "react-native-worklets-core": "^1.5.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@babel/preset-env": "^7.20.0",
+    "@babel/runtime": "^7.20.0",
+    "@react-native/babel-preset": "^0.73.19",
+    "@react-native/eslint-config": "^0.73.2",
+    "@react-native/metro-config": "^0.73.3",
+    "@react-native/typescript-config": "^0.73.1",
+    "@types/react": "^18.2.6",
+    "@types/react-test-renderer": "^18.0.0",
+    "babel-jest": "^29.6.3",
+    "eslint": "^8.19.0",
+    "jest": "^29.6.3",
+    "prettier": "^2.8.8",
+    "react-test-renderer": "18.2.0",
+    "typescript": "5.0.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

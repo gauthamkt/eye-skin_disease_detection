@@ -1,0 +1,325 @@
+# Skin Classifier Training - Google Colab Complete Code
+
+# Copy and paste this entire code into Google Colab cells
+
+# CELL 1: Setup and Imports
+# Install required packages
+!pip install tensorflow==2.13.0
+!pip install matplotlib
+!pip install numpy
+
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout
+from tensorflow.keras.models import Model
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+from google.colab import files
+import zipfile
+
+print(f"TensorFlow version: {tf.__version__}")
+print("GPU Available: ", tf.config.list_physical_devices('GPU'))
+
+# CELL 2: Upload Dataset
+# Upload dataset zip file
+print("Please upload your dataset.zip file...")
+uploaded = files.upload()
+
+# Extract the dataset
+if 'dataset.zip' in uploaded:
+    with zipfile.ZipFile('dataset.zip', 'r') as zip_ref:
+        zip_ref.extractall('.')
+    print("Dataset extracted successfully!")
+    
+    # Check dataset structure
+    if os.path.exists('dataset'):
+        print("\nDataset structure:")
+        !ls -la dataset/
+        if os.path.exists('dataset/skin'):
+            skin_count = len(os.listdir('dataset/skin'))
+            print(f"Skin images: {skin_count}")
+        if os.path.exists('dataset/non_skin'):
+            non_skin_count = len(os.listdir('dataset/non_skin'))
+            print(f"Non-skin images: {non_skin_count}")
+else:
+    print("Please upload dataset.zip file")
+
+# CELL 3: Training Parameters
+# Training parameters
+IMG_SIZE = 224
+BATCH_SIZE = 32
+EPOCHS = 15
+VALIDATION_SPLIT = 0.2
+LEARNING_RATE = 0.001
+
+# Dataset paths
+DATASET_PATH = 'dataset'
+SKIN_PATH = os.path.join(DATASET_PATH, 'skin')
+NON_SKIN_PATH = os.path.join(DATASET_PATH, 'non_skin')
+
+print(f"Image Size: {IMG_SIZE}x{IMG_SIZE}")
+print(f"Batch Size: {BATCH_SIZE}")
+print(f"Epochs: {EPOCHS}")
+print(f"Validation Split: {VALIDATION_SPLIT}")
+print(f"Dataset Path: {DATASET_PATH}")
+
+# CELL 4: Data Preprocessing
+# Data augmentation for training
+train_datagen = ImageDataGenerator(
+    rescale=1./255,
+    rotation_range=20,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    shear_range=0.2,
+    zoom_range=0.2,
+    horizontal_flip=True,
+    vertical_flip=False,
+    fill_mode='nearest',
+    validation_split=VALIDATION_SPLIT
+)
+
+# Only rescaling for validation
+validation_datagen = ImageDataGenerator(
+    rescale=1./255,
+    validation_split=VALIDATION_SPLIT
+)
+
+# Training data generator
+train_generator = train_datagen.flow_from_directory(
+    DATASET_PATH,
+    target_size=(IMG_SIZE, IMG_SIZE),
+    batch_size=BATCH_SIZE,
+    class_mode='binary',
+    subset='training',
+    shuffle=True,
+    seed=42
+)
+
+# Validation data generator
+validation_generator = validation_datagen.flow_from_directory(
+    DATASET_PATH,
+    target_size=(IMG_SIZE, IMG_SIZE),
+    batch_size=BATCH_SIZE,
+    class_mode='binary',
+    subset='validation',
+    shuffle=False,
+    seed=42
+)
+
+# Get class indices
+class_indices = train_generator.class_indices
+print(f"Class indices: {class_indices}")
+print(f"Classes: {list(class_indices.keys())}")
+
+# Count samples
+train_samples = train_generator.samples
+validation_samples = validation_generator.samples
+print(f"Training samples: {train_samples}")
+print(f"Validation samples: {validation_samples}")
+
+# CELL 5: Model Architecture
+# Load pre-trained MobileNetV2 as base model
+base_model = MobileNetV2(
+    input_shape=(IMG_SIZE, IMG_SIZE, 3),
+    include_top=False,
+    weights='imagenet'
+)
+
+# Freeze the base model layers
+base_model.trainable = False
+
+# Add custom classification head
+x = base_model.output
+x = GlobalAveragePooling2D()(x)
+x = Dense(128, activation='relu')(x)
+x = Dropout(0.5)(x)
+x = Dense(64, activation='relu')(x)
+x = Dropout(0.3)(x)
+predictions = Dense(1, activation='sigmoid')(x)
+
+# Create the complete model
+model = Model(inputs=base_model.input, outputs=predictions)
+
+# Compile the model
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
+    loss='binary_crossentropy',
+    metrics=['accuracy', 'precision', 'recall']
+)
+
+# Print model summary
+print("Model Architecture:")
+model.summary()
+
+# CELL 6: Callbacks Setup
+# Setup callbacks
+callbacks = [
+    # Early stopping to prevent overfitting
+    EarlyStopping(
+        monitor='val_loss',
+        patience=5,
+        restore_best_weights=True,
+        verbose=1
+    ),
+    
+    # Reduce learning rate when plateau is reached
+    ReduceLROnPlateau(
+        monitor='val_loss',
+        factor=0.2,
+        patience=3,
+        min_lr=1e-6,
+        verbose=1
+    ),
+    
+    # Save the best model
+    ModelCheckpoint(
+        'best_skin_classifier.h5',
+        monitor='val_accuracy',
+        save_best_only=True,
+        save_weights_only=False,
+        verbose=1
+    )
+]
+
+print("Callbacks configured:")
+print("- EarlyStopping (patience=5)")
+print("- ReduceLROnPlateau (factor=0.2)")
+print("- ModelCheckpoint (save_best_only=True)")
+
+# CELL 7: Model Training
+# Calculate steps
+steps_per_epoch = train_samples // BATCH_SIZE
+validation_steps = validation_samples // BATCH_SIZE
+
+print(f"Starting training...")
+print(f"Steps per epoch: {steps_per_epoch}")
+print(f"Validation steps: {validation_steps}")
+
+# Train the model
+history = model.fit(
+    train_generator,
+    steps_per_epoch=steps_per_epoch,
+    epochs=EPOCHS,
+    validation_data=validation_generator,
+    validation_steps=validation_steps,
+    callbacks=callbacks,
+    verbose=1
+)
+
+print("Training completed!")
+
+# CELL 8: Model Evaluation
+# Plot training history
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
+
+# Plot accuracy
+ax1.plot(history.history['accuracy'], label='Training Accuracy')
+ax1.plot(history.history['val_accuracy'], label='Validation Accuracy')
+ax1.set_title('Model Accuracy')
+ax1.set_xlabel('Epoch')
+ax1.set_ylabel('Accuracy')
+ax1.legend()
+ax1.grid(True)
+
+# Plot loss
+ax2.plot(history.history['loss'], label='Training Loss')
+ax2.plot(history.history['val_loss'], label='Validation Loss')
+ax2.set_title('Model Loss')
+ax2.set_xlabel('Epoch')
+ax2.set_ylabel('Loss')
+ax2.legend()
+ax2.grid(True)
+
+plt.tight_layout()
+plt.show()
+
+# Evaluate on validation set
+print("\nEvaluating model on validation set...")
+evaluation = model.evaluate(validation_generator)
+print(f"Validation Loss: {evaluation[0]:.4f}")
+print(f"Validation Accuracy: {evaluation[1]:.4f}")
+print(f"Validation Precision: {evaluation[2]:.4f}")
+print(f"Validation Recall: {evaluation[3]:.4f}")
+
+# CELL 9: Convert to TensorFlow Lite
+# Load the best model
+best_model = tf.keras.models.load_model('best_skin_classifier.h5')
+print("Best model loaded successfully!")
+
+# Convert to TensorFlow Lite
+print("Converting model to TensorFlow Lite...")
+converter = tf.lite.TFLiteConverter.from_keras_model(best_model)
+
+# Enable optimizations
+converter.optimizations = [tf.lite.Optimize.DEFAULT]
+
+# Convert the model
+tflite_model = converter.convert()
+
+# Save the TFLite model
+with open('skin_classifier.tflite', 'wb') as f:
+    f.write(tflite_model)
+
+print(f"TFLite model saved successfully!")
+print(f"Model size: {len(tflite_model) / (1024*1024):.2f} MB")
+
+# CELL 10: Test the TFLite Model
+# Load TFLite model and make predictions
+interpreter = tf.lite.Interpreter(model_path='skin_classifier.tflite')
+interpreter.allocate_tensors()
+
+# Get input and output details
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
+
+print(f"Input shape: {input_details[0]['shape']}")
+print(f"Input type: {input_details[0]['dtype']}")
+print(f"Output shape: {output_details[0]['shape']}")
+print(f"Output type: {output_details[0]['dtype']}")
+
+# Test on a few validation images
+print("\nTesting TFLite model on validation images...")
+
+# Get a batch of validation data
+validation_images, validation_labels = next(iter(validation_generator))
+
+# Test first 5 images
+for i in range(min(5, len(validation_images))):
+    # Prepare input
+    input_data = np.expand_dims(validation_images[i], axis=0).astype(np.float32)
+    
+    # Set input tensor
+    interpreter.set_tensor(input_details[0]['index'], input_data)
+    
+    # Run inference
+    interpreter.invoke()
+    
+    # Get output
+    output_data = interpreter.get_tensor(output_details[0]['index'])
+    prediction = output_data[0][0]
+    
+    # Convert prediction to label
+    predicted_class = 'Skin' if prediction >= 0.5 else 'Non-Skin'
+    actual_class = 'Skin' if validation_labels[i] == 1 else 'Non-Skin'
+    confidence = prediction if prediction >= 0.5 else 1 - prediction
+    
+    print(f"Image {i+1}: {predicted_class} ({confidence:.2%}) - Actual: {actual_class}")
+
+# CELL 11: Download the Model
+# Download the TFLite model
+print("Downloading skin_classifier.tflite...")
+files.download('skin_classifier.tflite')
+
+# Also download the H5 model (backup)
+print("Downloading best_skin_classifier.h5...")
+files.download('best_skin_classifier.h5')
+
+print("\nTraining completed successfully!")
+print("\nNext steps:")
+print("1. Download skin_classifier.tflite")
+print("2. Place it in your React Native app: src/assets/models/")
+print("3. Restart your React Native app")
+print("4. Skin validation will be automatically enabled!")

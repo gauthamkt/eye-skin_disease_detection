@@ -1,0 +1,28 @@
+{
+    "name": "EyeDetect",
+    "displayName": "EyeDetect",
+    "expo": {
+        "name": "EyeDetect",
+        "slug": "eyedetect",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/icon.png",
+        "splash": {
+            "image": "./assets/splash.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#1a1a2e"
+        },
+        "android": {
+            "package": "com.eyedetect",
+            "permissions": [
+                "CAMERA",
+                "READ_EXTERNAL_STORAGE",
+                "WRITE_EXTERNAL_STORAGE"
+            ],
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/adaptive-icon.png",
+                "backgroundColor": "#1a1a2e"
+            }
+        }
+    }
+}
